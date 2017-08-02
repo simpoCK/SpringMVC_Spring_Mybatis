@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
+		
+	
+	<!-- 配置数据库配置文件 -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:db.properties"/>
+	</bean>
+	<!-- 配置数据源 -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${driver}"/>
+		<property name="url" value="${url}"/>
+		<property name="username" value="${username}"/>
+		<property name="password" value="${password}"/>
+	</bean>
+	<!-- 配置sqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="typeAliasesPackage" value="net.simpotech.simpo.modules.vo"/>
+		<property name="mapperLocations">
+			<array>
+				<value>classpath:net/simpotech/simpo/modules/dao/*.xml</value>
+			</array>
+		</property>
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>  
+	</bean>
+	<!-- 配置声明式事务 -->
+	<!-- 事务管理器  -->	
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<!-- 事务通知 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="delete" propagation="REQUIRED"/>
+			<tx:method name="list" read-only="false"/>
+			<tx:method name="*" propagation="REQUIRED"/>
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut expression="execution(* net.simpotech.simpo.modules.service.impl.*.*(..))" id="pointcut"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
+	</aop:config>
+	<context:component-scan base-package="net.simpotech.simpo.modules"/>
+</beans>
