@@ -7,6 +7,6 @@
 <title>首页</title>
 </head>
 <body>
-首页
+<jsp:forward page="/userAction/index.html" />
 </body>
 </html>
